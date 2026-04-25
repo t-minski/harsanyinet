@@ -5,6 +5,7 @@ import time
 import torch
 import torch.nn as nn
 import torch.optim as optim
+import wandb
 
 from model.HarsanyiMLP import HarsanyiNet
 from utils.data import get_data_loader
@@ -32,6 +33,12 @@ parser.add_argument('--initial_V', type=float, default=1.0, help="initial value 
 parser.add_argument('--act_ratio', type= float, default=0.1, help="initial active ratio for children sets.")
 parser.add_argument('--comparable_DNN', action='store_true', default=False, help="whether to use a tranditional DNN with comparable size, \
                                                                         False - HarsanyiNet, True - Traditional DNN")
+parser.add_argument('--wandb', action='store_true', default=False, help="enable Weights & Biases logging")
+parser.add_argument('--wandb_project', type=str, default='hmix-hnet', help="W&B project name")
+parser.add_argument('--wandb_entity', type=str, default='', help="W&B entity/user/team name")
+parser.add_argument('--wandb_group', type=str, default='hnet', help="W&B group for run separation")
+parser.add_argument('--wandb_job_type', type=str, default='train_tabular', help="W&B job type")
+parser.add_argument('--wandb_tags', type=str, default='hnet,census', help="Comma-separated W&B tags")
 
 args = parser.parse_args()
 
@@ -99,6 +106,18 @@ def train(args,
         test_acc.append(avg_te_acc)
         print(f"test_loss: {avg_te_loss:.4f} test_acc: {avg_te_acc:.4f}\n")
 
+        if args.wandb:
+            wandb.log(
+                {
+                    "epoch": epoch,
+                    "train/loss": avg_tr_loss,
+                    "train/acc": avg_tr_acc,
+                    "test/loss": avg_te_loss,
+                    "test/acc": avg_te_acc,
+                    "lr": optimizer.param_groups[0]["lr"],
+                }
+            )
+
         t2 = time.time()
         print(f"time:{t2 - t1}")
 
@@ -143,6 +162,19 @@ if __name__ == '__main__':
     init_path(args)
     setup_seed(args.seed)
 
+    if args.wandb:
+        wandb_kwargs = {
+            "project": args.wandb_project,
+            "name": f"hnet_{args.dataset.lower()}",
+            "group": args.wandb_group,
+            "job_type": args.wandb_job_type,
+            "tags": [t.strip() for t in args.wandb_tags.split(",") if t.strip()],
+            "config": vars(args),
+        }
+        if args.wandb_entity:
+            wandb_kwargs["entity"] = args.wandb_entity
+        wandb.init(**wandb_kwargs)
+
     train_loader, test_loader, num_classes = get_data_loader(args.dataset, args.batch_size)
     device = args.device if torch.cuda.is_available() else 'cpu'
     
@@ -172,3 +204,6 @@ if __name__ == '__main__':
 
     t2 = time.time()
     print(f"time:{t2 - t1}")
+
+    if args.wandb:
+        wandb.finish()
