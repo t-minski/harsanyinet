@@ -118,7 +118,7 @@ if __name__ == '__main__':
         for index in range(args.num_samples):
 
             # get data
-            x_te, y_te = get_sample(test_loader, index=index)
+            x_te, y_te = get_sample(test_loader, index=index, device=device)
             label = int(y_te)
             x_te = x_te.double()
             model = model.double()

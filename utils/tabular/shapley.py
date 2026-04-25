@@ -7,7 +7,7 @@ from utils.attribute import HarsanyiMLPAttribute
 from utils.tabular.shap_util import brute_force_shapley, ShapSampling, ShapKernel, permutation_sample_parallel
 from utils.tabular.plot import plot_convergence
 
-def get_sample(test_loader, index=0, batch=0, batch_size=1,device='cuda:0'):
+def get_sample(test_loader, index=0, batch=0, batch_size=1,device='cpu'):
     for i, (x_te, y_te) in enumerate(test_loader):
         x_te = x_te.to(device)
         y_te = y_te.to(device)
@@ -113,7 +113,7 @@ def plot_shapleys(args, model, test_loader, device,save_dir):
     for index in tqdm(range(args.num_samples)):
 
         # get data
-        x_te, y_te = get_sample(test_loader, index=index ,device=device)
+        x_te, y_te = get_sample(test_loader, index=index, device=device)
         label = int(y_te)
         x_te = x_te.double()
         model = model.double()
