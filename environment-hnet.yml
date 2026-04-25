@@ -1,0 +1,22 @@
+name: hnet
+channels:
+  - conda-forge
+dependencies:
+  - python=3.9
+  - pip
+  - pip:
+    - torch
+    - torchvision
+    - torchaudio
+    - numpy==1.23.5
+    - scipy
+    - pandas
+    - scikit-learn
+    - matplotlib
+    - pillow
+    - opencv-python
+    - tqdm
+    - transformers
+    - captum==0.6.0
+    - torchtoolbox==0.1.8.2
+    - wandb
